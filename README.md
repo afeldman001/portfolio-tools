@@ -1,2 +1,2 @@
 # CovarianceDenoising
-This projects implements the covariance matrix denoising process provided in Marcos M. López de Prado, "Machine Learning for Asset Managers," Section 2, and visualizes the results.
+This project implements the covariance matrix denoising process provided in Marcos M. López de Prado's "Machine Learning for Asset Managers," Section 2, and visualizes the results, in a similar manner as in the book. Instead of using simulated data, I fetch data for a portfolio of 30 companies using the yfinance API. The portfolio represents a random sample of companies. The portfolio implemented in the sample is not an investment reccomendation, and is simply for expository purposes. 
