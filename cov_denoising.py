@@ -18,16 +18,16 @@ def mpPDF(var, q, pts):
     return pdf
 
 def getPCA(matrix):
-    """Perform PCA (eigen decomposition) on a symmetric matrix and return sorted eigenvalues and eigenvectors."""
-    eVal, eVec = np.linalg.eigh(matrix)  # Compute eigenvalues and eigenvectors
-    indices = eVal.argsort()[::-1]  # Sort eigenvalues in descending order
-    eVal, eVec = eVal[indices], eVec[:, indices]  # Reorder eigenvectors accordingly
-    eVal = np.diagflat(eVal)  # Convert eigenvalues to a diagonal matrix
+    """perform PCA (eigen decomposition) on a symmetric matrix and return sorted eigenvalues and eigenvectors."""
+    eVal, eVec = np.linalg.eigh(matrix)  # compute eigenvalues and eigenvectors
+    indices = eVal.argsort()[::-1]  # sort eigenvalues in descending order
+    eVal, eVec = eVal[indices], eVec[:, indices]  # reorder eigenvectors accordingly
+    eVal = np.diagflat(eVal)  # convert eigenvalues to a diagonal matrix
     return eVal, eVec
 
 
 def fitKDE(obs, bWidth=0.01, x=None, kernel='gaussian'):
-    """ Fits a kernel density estimator (KDE) to the given observations. """
+    """ fits a kernel density estimator (KDE) to the given observations. """
     if len (obs.shape) == 1:obs=obs.reshape(-1, 1)
     kde = KernelDensity(kernel=kernel, bandwidth=bWidth).fit(obs)
     if x is None: 
@@ -39,22 +39,22 @@ def fitKDE(obs, bWidth=0.01, x=None, kernel='gaussian'):
 
 def getCovMatrix(returns):
     """
-    Compute the empirical covariance matrix from stock returns using the dot-product method.
+    compute the empirical covariance matrix from stock returns using the dot-product method.
 
-    Parameters:
+    parameters:
     -----------
     returns : pd.DataFrame
         DataFrame where each column represents the returns of a stock.
 
-    Returns:
+    returns:
     --------
     np.ndarray
-        Covariance matrix of the stock returns.
+        covariance matrix of the stock returns.
     """
-    X = returns.values  # Convert DataFrame to NumPy array
-    X -= X.mean(axis=0)  # Demean returns
-    T = X.shape[0]  # Number of time periods
-    cov = np.dot(X.T, X) / (T - 1)  # Compute covariance matrix
+    X = returns.values  # convert DataFrame to NumPy array
+    X -= X.mean(axis=0)  # demean returns
+    T = X.shape[0]  # number of time periods
+    cov = np.dot(X.T, X) / (T - 1)  # compute covariance matrix
     return cov
 
 def cov2corr(cov):
@@ -66,39 +66,39 @@ def cov2corr(cov):
 
 def errPDFs(var, eVal, q, bWidth, pts=1000):
     """
-    Calculate error between theoretical and empirical PDFs.
+    calculate error between theoretical and empirical PDFs.
     
-    Parameters:
+    parameters:
     -----------
     var : float
-        Variance parameter for MP distribution
+        variance parameter for MP distribution
     eVal : array-like
-        Empirical eigenvalues
+        empirical eigenvalues
     q : float
-        Ratio of observations to variables
+        ratio of observations to variables
     bWidth : float
-        Bandwidth for kernel density estimation
+        bandwidth for kernel density estimation
     pts : int, default=1000
-        Number of points for PDF evaluation
+        number of points for PDF evaluation
     
-    Returns:
+    returns:
     --------
     float
-        Sum of squared errors between PDFs
+        sum of squared errors between PDFs
     """
-    # Calculate theoretical MP distribution
+    # calculate theoretical MP distribution
     pdf0 = mpPDF(var, q, pts)
     
-    # Fit empirical distribution using KDE
+    # fit empirical distribution using KDE
     pdf1 = fitKDE(eVal, bWidth=bWidth, x=pdf0.index.values)
     
-    # Calculate sum of squared errors
+    # calculate sum of squared errors
     sse = np.sum((pdf1 - pdf0)**2)
     
     return sse
 
 def findMaxEval(eVal, q, bWidth):
-    """Find maximum eigenvalue threshold through MP distribution fitting"""
+    """find maximum eigenvalue threshold through MP distribution fitting"""
     out = minimize(lambda *x: errPDFs(*x), 0.5,
                   args=(eVal, q, bWidth),
                   bounds=((1e-5, 1-1e-5),))
