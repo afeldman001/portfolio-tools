@@ -5,7 +5,7 @@ import seaborn as sns
 from data_pipeline import fetch_yfinance_data
 from cov_denoising import getCovMatrix, getPCA, mpPDF, fitKDE, findMaxEval, cov2corr, denoisedCorr
 
-# Step 1: Fetch Stock Data
+# fetch Stock Data
 tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'JPM', 'KR', 'BRK-B', 'META', 'SPOT', 'NFLX', 'PYPL', 'IBM', 'CSCO', 'GILD', 'ABBV', 'ABT', 'LNG', 'JNJ', 'AVGO', 'MDT', 'LLY', 'CHD', 'BAC', 'KNX', 'ADP', 'AFL', 'CNI', 'CVX', 'HD']  # Portfolio tickers
 start_date = '2000-01-01'
 end_date = '2024-01-01'
@@ -18,7 +18,7 @@ returns = returns.dropna()
 
 print(returns)
 
-# Plot adjusted stock prices over time
+# plot adjusted stock prices over time
 plt.figure(figsize=(12, 6))
 for stock in prices.columns:
     plt.plot(prices.index, prices[stock], label=stock)
@@ -31,7 +31,7 @@ plt.grid()
 plt.show()
 
 
-# Step 2: Compute Covariance & Correlation Matrices
+# compute covariance and correlation matrices
 cov_matrix = getCovMatrix(returns)
 corr_matrix = cov2corr(cov_matrix)
 
@@ -42,7 +42,7 @@ print(f"Any NaN values? {np.isnan(corr_matrix).any()}")
 print(f"Any Inf values? {np.isinf(corr_matrix).any()}")
 print(f"Minimum Eigenvalue (before PCA): {np.linalg.eigvalsh(corr_matrix).min()}")
 
-# perform PCA to Extract Eigenvalues
+# perform PCA to extract eigenvalues
 eVal, eVec = getPCA(corr_matrix)  
 
 print("Eigenvalues before denoising:", np.diag(eVal))
@@ -51,7 +51,7 @@ print(f"Mean Eigenvalue: {np.mean(np.diag(eVal))}")
 print(f"Max Eigenvalue: {np.max(np.diag(eVal))}")
 print(f"Eigenvalue Shape: {eVal.shape}")
 
-# Step 4: Fit the Marčenko-Pastur Distribution
+# fit the Marčenko-Pastur distribution
 T, N = returns.shape  # Time periods and number of assets
 q = T / N  # Ratio of observations to variables
 
@@ -80,16 +80,16 @@ empirical_pdf = fitKDE(np.diag(eVal), bWidth=0.05, x=mp_pdf.index.values)
 
 plt.figure(figsize=(8, 5))
 
-# Plot histogram
+# plot histogram
 sns.histplot(np.diag(eVal), bins=30, stat="density", kde=False, edgecolor='black', alpha=0.6, label="Empirical Eigenvalues")
 
-# Overlay the theoretical Marčenko-Pastur PDF
+# overlay the theoretical Marčenko-Pastur PDF
 plt.plot(mp_pdf.index, mp_pdf, linestyle='--', color="blue", label="Theoretical MP PDF")
 
-# Overlay Empirical KDE
+# overlay Empirical KDE
 plt.plot(empirical_pdf.index, empirical_pdf, color='red', label="Empirical KDE (Red)")
 
-# Mark the MP threshold
+# mark the MP threshold
 plt.axvline(eMax, color='black', linestyle='dotted', label=f"MP Threshold ($\lambda_{max}$ = {eMax:.2f})")
 
 plt.xlabel("Eigenvalue ($\lambda$)")
@@ -104,26 +104,26 @@ corr1 = denoisedCorr(eVal, eVec, nFacts)
 
 eVal1, eVec1 = getPCA(corr1)
 
-# Plot comparison of eigenvalues before and after denoising
+# plot comparison of eigenvalues before and after denoising
 plt.figure(figsize=(10, 6))
 
-# Plot original eigenvalues
+# plot original eigenvalues
 plt.plot(range(1, len(eVal) + 1), np.sort(np.diag(eVal))[::-1], label="Original Eigenvalues", color="blue")
 
-# Plot denoised eigenvalues
+# plot denoised eigenvalues
 plt.plot(range(1, len(eVal1) + 1), np.sort(np.diag(eVal1))[::-1], linestyle="dashed", color="orange", label="Denoised Eigenvalues")
 
-# Set log scale for y-axis
+# set log scale for y-axis
 plt.yscale("log")
 
-# Labels and title
+# labels and title
 plt.xlabel("Eigenvalue Number")
 plt.ylabel("Eigenvalue (log-scale)")
 plt.title("Comparison of Eigenvalues Before and After Denoising")
 
-# Legend and grid
+# legend and grid
 plt.legend()
 plt.grid(True, which="both", linestyle="--", linewidth=0.5)
 
-# Show plot
+# show plot
 plt.show()
